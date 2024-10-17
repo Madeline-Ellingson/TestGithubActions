@@ -18,13 +18,13 @@ jobs:
 
     steps:
       - name: Comment on the issue if it is a story and was NOT created by an admin
-        if: !env.STORY_CREATED_BY_ADMIN
+        if: ${{ !(contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login == 'Madeline-Ellingson') }}
         run: gh issue comment "$NUMBER" --body "$BODY"
       - name: Close if the issue is a story and was NOT created by an admin
-        if: !env.STORY_CREATED_BY_ADMIN
+        if: ${{ !(contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login == 'Madeline-Ellingson') }}
         run: gh issue close "$NUMBER"
       - name: Add issue to the project
-        if: env.STORY_CREATED_BY_ADMIN || !contains(github.event.issue.labels.*.name, 'story')
+        if: ${{ (contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login == 'Madeline-Ellingson') || !contains(github.event.issue.labels.*.name, 'story') }}
         uses: actions/add-to-project@v1
         with:
           project-url: https://github.com/users/Madeline-Ellingson/projects/4
