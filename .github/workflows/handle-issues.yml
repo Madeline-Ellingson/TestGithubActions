@@ -20,10 +20,11 @@ jobs:
           BODY: "This issue was automatically deleted because it was submitted by a non-admin user. Please use the Bug Report or Feature Request template instead."
       - name: Close issue
         run: gh issue close "$NUMBER"
+
   add-issue-to-project:
     name: Add issue to project
     needs: delete-story-issue-from-non-admin
-    if: github.event.issue.closed == false
+    if: needs.delete-story-issue-from-non-admin.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
       issues: write
