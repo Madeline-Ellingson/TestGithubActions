@@ -4,30 +4,27 @@ on:
     types:
       - opened
 jobs:
-  delete-story-issue-from-non-admin:
-    name: Delete story issue from non-admin
-    if: contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login != 'Madeline-Ellingson'
+  handle-issues:
+    name: Handle Issues
     runs-on: ubuntu-latest
     permissions:
       issues: write
-    steps:
-      - name: Add comment
-        run: gh issue comment "$NUMBER" --body "$BODY"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.issue.number }}
-          BODY: "This issue was automatically deleted because it was submitted by a non-admin user. Please use the Bug Report or Feature Request template instead."
-      - name: Close issue
-        run: gh issue close "$NUMBER"
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      STORY_CREATED_BY_ADMIN: ${{ contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login == 'Madeline-Ellingson' }}
+      NUMBER: ${{ github.event.issue.number }}
+      BODY: "This issue was automatically deleted because it was submitted by a non-admin user. Please use the Bug Report or Feature Request template instead."
 
-  add-issue-to-project:
-    name: Add issue to project
-    if: needs.delete-story-issue-from-non-admin.result == 'skipped'
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
+      - name: Comment on the issue if it is a story and was NOT created by an admin
+        if: $!STORY_CREATED_BY_ADMIN
+        run: gh issue comment "$NUMBER" --body "$BODY"
+      - name: Close if the issue is a story and was NOT created by an admin
+        if: $!STORY_CREATED_BY_ADMIN
+        run: gh issue close "$NUMBER"
+      - name: Add issue to the project
+        if: $STORY_CREATED_BY_ADMIN || !contains(github.event.issue.labels.*.name, 'story')
       - uses: actions/add-to-project@v1
         with:
           project-url: https://github.com/users/Madeline-Ellingson/projects/4
