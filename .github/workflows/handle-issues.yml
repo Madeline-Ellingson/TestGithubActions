@@ -1,0 +1,34 @@
+name: Handle Issues
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  delete-story-issue-from-non-admin:
+    name: Delete story issue from non-admin
+    if: contains(github.event.issue.labels.*.name, 'story') && github.event.issue.user.login != 'Madeline-Ellingson'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment
+        run: gh issue comment "$NUMBER" --body "$BODY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          BODY: "This issue was automatically deleted because it was submitted by a non-admin user. Please use the Bug Report or Feature Request template instead."
+      - name: Close issue
+        run: gh issue close "$NUMBER"
+  add-issue-to-project:
+    name: Add issue to project
+    needs: delete-story-issue-from-non-admin
+    if: github.event.issue.closed == false
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/add-to-project@v1
+        with:
+          project-url: https://github.com/users/Madeline-Ellingson/projects/4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
