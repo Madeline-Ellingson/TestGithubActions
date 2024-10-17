@@ -23,7 +23,6 @@ jobs:
 
   add-issue-to-project:
     name: Add issue to project
-    needs: delete-story-issue-from-non-admin
     if: needs.delete-story-issue-from-non-admin.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
